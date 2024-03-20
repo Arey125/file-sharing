@@ -24,3 +24,10 @@ clean:
 
 run: all
 	$(BINARY)
+
+files:
+	@echo -n "/" | nc 127.0.0.1 9115
+
+chunk:
+	@echo -n "/chunk 1.txt" | nc 127.0.0.1 9115
+
