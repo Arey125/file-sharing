@@ -6,15 +6,26 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 
-char* read_response(int client_fd) {
+char *make_request(int client_fd, char *request) {
+    write(client_fd, request, strlen(request));
+    shutdown(client_fd, SHUT_WR);
+
     char length_str[32];
     bzero(length_str, 32);
-    read(client_fd, length_str, 32);
+    if (read(client_fd, length_str, 32) < 0) {
+        perror("read error");
+        return NULL;
+    }
     int length = strtol(length_str, NULL, 10);
+    printf("Length: %d\n", length);
 
     char *buf = malloc(length);
     bzero(buf, length);
-    read(client_fd, buf, length);
+    if (read(client_fd, buf, length) < 0) {
+        perror("read error");
+        free(buf);
+        return NULL;
+    }
     return buf;
 }
 
@@ -45,9 +56,11 @@ int get_file_list() {
         return -1;
     }
 
-    write(client_fd, "/", 1);
+    char *response = make_request(client_fd, "/");
+    if (response == NULL) {
+        return -1;
+    }
 
-    char *response = read_response(client_fd);
     printf("File list:\n%s\n", response);
     free(response);
 
@@ -60,10 +73,14 @@ int get_chunk(char *chunk_name) {
         return -1;
     }
 
-    write(client_fd, "/chunk ", 7);
-    write(client_fd, chunk_name, strlen(chunk_name)); 
+    char request[1024];
+    bzero(request, 1024);
+    sprintf(request, "/chunk %s", chunk_name);
 
-    char *chunk = read_response(client_fd);
+    char *chunk = make_request(client_fd, request);
+    if (chunk == NULL) {
+        return -1;
+    }
     printf("Chunk:\n%s\n", chunk);
     free(chunk);
 
@@ -71,7 +88,7 @@ int get_chunk(char *chunk_name) {
 }
 
 int client(int argc, char *argv[]) {
-    if (argc == 2 && strcmp("files", argv[1]) == 0) {
+    if (argc == 2 && strcmp("list", argv[1]) == 0) {
         return get_file_list();
     }
 

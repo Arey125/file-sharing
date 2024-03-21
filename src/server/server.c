@@ -53,7 +53,10 @@ int run_server() {
         bzero(buf, 1024);
         read(newsockfd, buf, 1024);
         printf("%s\n", buf);
-        route_request(newsockfd, buf);
+        int ret = route_request(newsockfd, buf);
+        if (ret < 0) {
+            printf("route_request failed\n");
+        }
         close(newsockfd);
     }
 
