@@ -6,29 +6,6 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 
-char *make_request(int client_fd, char *request) {
-    write(client_fd, request, strlen(request));
-    shutdown(client_fd, SHUT_WR);
-
-    char length_str[32];
-    bzero(length_str, 32);
-    if (read(client_fd, length_str, 32) < 0) {
-        perror("read error");
-        return NULL;
-    }
-    int length = strtol(length_str, NULL, 10);
-    printf("Length: %d\n", length);
-
-    char *buf = malloc(length);
-    bzero(buf, length);
-    if (read(client_fd, buf, length) < 0) {
-        perror("read error");
-        free(buf);
-        return NULL;
-    }
-    return buf;
-}
-
 int setup_socket() {
     int client_fd = socket(AF_INET, SOCK_STREAM, 0);
     if (client_fd < 0) {
@@ -49,6 +26,38 @@ int setup_socket() {
 
     return client_fd;
 }
+
+char *make_request(int client_fd, char *request) {
+    write(client_fd, request, strlen(request));
+    shutdown(client_fd, SHUT_WR);
+
+    char length_str[32];
+    bzero(length_str, 32);
+    int count = read(client_fd, length_str, 32);
+    if (count < 0) {
+        perror("read error");
+        return NULL;
+    }
+
+    int length = strtol(length_str, NULL, 10);
+    printf("Length: %d\n", length);
+
+    int pos = 0;
+    while (length_str[pos] != '\n')
+        pos++;
+
+    char *buf = malloc(length);
+    bzero(buf, length);
+    strcpy(buf, length_str + pos + 1);
+
+    if (read(client_fd, buf + count - pos - 1, length - count + pos + 1) < 0) {
+        perror("read error");
+        free(buf);
+        return NULL;
+    }
+    return buf;
+}
+
 
 int get_file_list() {
     int client_fd = setup_socket();
