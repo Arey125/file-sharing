@@ -31,8 +31,8 @@ char *make_request(int client_fd, char *request) {
     write(client_fd, request, strlen(request));
     shutdown(client_fd, SHUT_WR);
 
-    char length_str[32];
-    bzero(length_str, 32);
+    char length_str[33];
+    bzero(length_str, 33);
     int count = read(client_fd, length_str, 32);
     if (count < 0) {
         perror("read error");
@@ -42,19 +42,26 @@ char *make_request(int client_fd, char *request) {
     int length = strtol(length_str, NULL, 10);
     printf("Length: %d\n", length);
 
-    int pos = 0;
-    while (length_str[pos] != '\n')
-        pos++;
+    int new_line_pos = 0;
+    while (length_str[new_line_pos] != '\n')
+        new_line_pos++;
 
-    char *buf = malloc(length);
-    bzero(buf, length);
-    strcpy(buf, length_str + pos + 1);
+    char *buf = malloc(length + 1);
+    bzero(buf, length + 1);
+    strcpy(buf, length_str + new_line_pos + 1);
 
-    if (read(client_fd, buf + count - pos - 1, length - count + pos + 1) < 0) {
-        perror("read error");
-        free(buf);
-        return NULL;
+    int pos = count - new_line_pos - 1;
+    while (pos < length) {
+        count = recv(client_fd, buf + pos, length - pos, 0);
+        if (count < 0) {
+            perror("read error");
+            free(buf);
+            return NULL;
+        }
+        printf("Received %d bytes\n", count);
+        pos += count;
     }
+
     return buf;
 }
 

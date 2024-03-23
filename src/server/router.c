@@ -13,6 +13,18 @@ int write_response(int sockfd, char *response) {
         perror("write error");
         return -1;
     }
+
+    int pos = 0;
+
+    while (pos < len) {
+        int count = send(sockfd, response + pos, len - pos, 0);
+        if (count < 0) {
+            perror("write error");
+            return -1;
+        }
+        printf("Sent %d bytes\n", count);
+        pos += count;
+    }
     return write(sockfd, response, len);
 }
 
