@@ -1,14 +1,14 @@
-BINARY=./build/fsh
 CODEDIRS=./src ./src/server ./src/client
 BUILDDIR=./build
+BINARY=$(BUILDDIR)/fsh
 
 CC=gcc
 CFLAGS=-Wall -MP -MD
 
 CFILES=$(foreach dir, $(CODEDIRS), $(wildcard $(dir)/*.c))
-OBJECTS=$(patsubst ./src/%.c, ./build/%.o, $(CFILES))
-DEPFILES=$(patsubst %.c, $(BUILDDIR)/%.d, $(CFILES))
-BUILDDIRS = $(patsubst ./src%, ./build%, $(CODEDIRS))
+OBJECTS=$(patsubst ./src/%.c, $(BUILDDIR)/%.o, $(CFILES))
+DEPFILES=$(patsubst ./src/%.c, $(BUILDDIR)/%.d, $(CFILES))
+BUILDDIRS = $(patsubst ./src%, $(BUILDDIR)%, $(CODEDIRS))
 
 all: builddirs $(BINARY)
 
@@ -22,7 +22,7 @@ builddirs:
 	@mkdir -p $(BUILDDIRS)
 
 clean:
-	rm -rf $(BUILDDIR)
+	rm $(BINARY) $(OBJECTS) $(DEPFILES)
 
 run: all
 	@$(BINARY)
