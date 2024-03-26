@@ -1,9 +1,16 @@
 CODEDIRS=./src ./src/server ./src/client
 BUILDDIR=./build
+CFLAGS=-Wall -MP -MD
+CC=gcc
+DEBUG=0
+
+ifeq ($(DEBUG), 1)
+	BUILDDIR=./build/debug
+	CFLAGS+= -fsanitize=address -fsanitize=undefined -fsanitize=leak -g -Og -static-libgcc
+endif
+
 BINARY=$(BUILDDIR)/fsh
 
-CC=gcc
-CFLAGS=-Wall -MP -MD
 
 CFILES=$(foreach dir, $(CODEDIRS), $(wildcard $(dir)/*.c))
 OBJECTS=$(patsubst ./src/%.c, $(BUILDDIR)/%.o, $(CFILES))

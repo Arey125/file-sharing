@@ -15,8 +15,6 @@ int get_host(char *host, struct addrinfo **server_addr) {
         perror("sscanf error");
         return -1;
     }
-    printf("Hostname: %s\n", hostname);
-    printf("Port: %s\n", port);
 
     struct addrinfo hints;
     bzero(&hints, sizeof(hints));
@@ -106,6 +104,9 @@ char *request(char *host, char *body) {
 
     int client_fd = -1;
     for (struct addrinfo *p = server_addr; p != NULL; p = p->ai_next) {
+        char addr_str[256];
+        inet_ntop(p->ai_family, ((struct sockaddr_in *)p->ai_addr), addr_str, 256);
+        printf("Trying %s\n", addr_str);
         int client_fd = setup_socket(p);
         if (client_fd > 0) {
             printf("Connected\n");
@@ -113,9 +114,12 @@ char *request(char *host, char *body) {
         }
     }
 
+    freeaddrinfo(server_addr);
+
     if (client_fd < 0) {
         return NULL;
     }
+
 
     printf("Client fd: %d\n", client_fd);
     return make_request(client_fd, body);
