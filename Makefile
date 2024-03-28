@@ -1,14 +1,21 @@
-BINARY=./build/fsh
 CODEDIRS=./src ./src/server ./src/client
 BUILDDIR=./build
-
-CC=gcc
 CFLAGS=-Wall -MP -MD
+CC=gcc
+DEBUG=0
+
+ifeq ($(DEBUG), 1)
+	BUILDDIR=./build/debug
+	CFLAGS+= -fsanitize=address -fsanitize=undefined -fsanitize=leak -g -Og -static-libgcc
+endif
+
+BINARY=$(BUILDDIR)/fsh
+
 
 CFILES=$(foreach dir, $(CODEDIRS), $(wildcard $(dir)/*.c))
-OBJECTS=$(patsubst ./src/%.c, ./build/%.o, $(CFILES))
-DEPFILES=$(patsubst %.c, $(BUILDDIR)/%.d, $(CFILES))
-BUILDDIRS = $(patsubst ./src%, ./build%, $(CODEDIRS))
+OBJECTS=$(patsubst ./src/%.c, $(BUILDDIR)/%.o, $(CFILES))
+DEPFILES=$(patsubst ./src/%.c, $(BUILDDIR)/%.d, $(CFILES))
+BUILDDIRS = $(patsubst ./src%, $(BUILDDIR)%, $(CODEDIRS))
 
 all: builddirs $(BINARY)
 
@@ -22,7 +29,7 @@ builddirs:
 	@mkdir -p $(BUILDDIRS)
 
 clean:
-	rm -rf $(BUILDDIR)
+	rm $(BINARY) $(OBJECTS) $(DEPFILES)
 
 run: all
 	@$(BINARY)
