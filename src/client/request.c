@@ -50,7 +50,6 @@ int setup_socket(struct addrinfo *server_addr) {
 char *make_request(int client_fd, char *request) {
     int pos = 0;
     int length = strlen(request);
-    printf("Request length: %d\n", length);
     while (pos < length) {
         int count = send(client_fd, request + pos, length - pos, 0);
         if (count < 0) {
@@ -70,7 +69,6 @@ char *make_request(int client_fd, char *request) {
     }
 
     length = strtol(length_str, NULL, 10);
-    printf("Length: %d\n", length);
 
     int new_line_pos = 0;
     while (length_str[new_line_pos] != '\n')
@@ -88,7 +86,6 @@ char *make_request(int client_fd, char *request) {
             free(buf);
             return NULL;
         }
-        printf("Received %d bytes\n", count);
         pos += count;
     }
 
@@ -106,10 +103,8 @@ char *request(char *host, char *body) {
     for (struct addrinfo *p = server_addr; p != NULL; p = p->ai_next) {
         char addr_str[256];
         inet_ntop(p->ai_family, ((struct sockaddr_in *)p->ai_addr), addr_str, 256);
-        printf("Trying %s\n", addr_str);
-        int client_fd = setup_socket(p);
+        client_fd = setup_socket(p);
         if (client_fd > 0) {
-            printf("Connected\n");
             break;
         }
     }
@@ -117,10 +112,10 @@ char *request(char *host, char *body) {
     freeaddrinfo(server_addr);
 
     if (client_fd < 0) {
+        puts("setup_socket error");
         return NULL;
     }
 
 
-    printf("Client fd: %d\n", client_fd);
     return make_request(client_fd, body);
 }

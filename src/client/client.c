@@ -19,7 +19,8 @@ char **get_server_list() {
     while (fscanf(fp, "%s", buf) != EOF) {
         if (pos >= server_list_size - 2) {
             server_list_size *= 2;
-            server_list = realloc(server_list, server_list_size * sizeof(char *));
+            server_list =
+                realloc(server_list, server_list_size * sizeof(char *));
         }
         server_list[pos] = strdup(buf);
         pos++;
@@ -57,27 +58,40 @@ int get_chunk(char *host, char *chunk_name) {
 }
 
 int client(int argc, char *argv[]) {
+    int ret = 0;
     if (argc == 2 && strcmp("list", argv[1]) == 0) {
         char **server_list = get_server_list();
         for (int i = 0; server_list[i] != NULL; i++) {
             printf("%s\n", server_list[i]);
-            if (get_file_list(server_list[i]) < 0)
-                return -1;
+            if (get_file_list(server_list[i]) < 0) {
+                ret = -1;
+                break;
+            }
         }
 
+        for (int i = 0; server_list[i] != NULL; i++) {
+            free(server_list[i]);
+        }
         free(server_list);
-        return 0;
+
+        return ret;
     }
 
     if (argc == 3 && strcmp("chunk", argv[1]) == 0) {
         char **server_list = get_server_list();
         for (int i = 0; server_list[i] != NULL; i++) {
             printf("%s\n", server_list[i]);
-            if (get_chunk(argv[2], server_list[i]) < 0)
-                return -1;
+            if (get_chunk(server_list[i], server_list[i]) < 0) {
+                ret = -1;
+                break;
+            }
         }
 
+        for (int i = 0; server_list[i] != NULL; i++) {
+            free(server_list[i]);
+        }
         free(server_list);
+
         return 0;
     }
     return 0;
