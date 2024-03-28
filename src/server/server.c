@@ -1,46 +1,63 @@
+#include <netdb.h>
 #include <netinet/in.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/socket.h>
 #include <unistd.h>
-#include <string.h>
 
 #include "../server.h"
 #include "router.h"
- 
-int start_server(int port) {
-    int sockfd = socket(AF_INET, SOCK_STREAM, 0);
-    if (sockfd < 0) {
-        perror("socket");
+
+int start_server(char *port) {
+    struct addrinfo hints;
+    hints.ai_family = AF_INET;
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_flags = AI_PASSIVE;
+    struct addrinfo *result;
+
+    int ret = getaddrinfo(NULL, port, &hints, &result);
+    if (ret != 0) {
+        perror("getaddrinfo");
         exit(1);
     }
 
-    int opt = 1;
-    if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0) {
-        perror("setsockopt");
-        exit(1);
-    }
+    int sockfd = -1;
+    for (struct addrinfo *p = result; p != NULL; p = p->ai_next) {
+        sockfd = socket(AF_INET, SOCK_STREAM, 0);
+        if (sockfd < 0) {
+            perror("socket");
+            continue;
+        }
 
-    struct sockaddr_in addr;
-    addr.sin_family = AF_INET;
-    addr.sin_port = htons(port);
-    addr.sin_addr.s_addr = htonl(INADDR_ANY);
+        int opt = 1;
+        if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) <
+            0) {
+            perror("setsockopt");
+            continue;
+        }
 
-    if (bind(sockfd, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
-        perror("bind");
-        exit(1);
-    }
+        if (bind(sockfd, p->ai_addr, p->ai_addrlen) < 0) {
+            perror("bind");
+            continue;
+        }
 
-    if (listen(sockfd, 256) < 0) {
-        perror("listen");
-        exit(1);
+        if (listen(sockfd, 256) < 0) {
+            perror("listen");
+            continue;
+        }
     }
+    freeaddrinfo(result);
 
     return sockfd;
 }
 
 int run_server() {
-    int sockfd = start_server(9115);
+    int sockfd = start_server("9115");
+
+    if (sockfd < 0) {
+        return 1;
+    }
 
     while (1) {
         int newsockfd = accept(sockfd, NULL, NULL);
