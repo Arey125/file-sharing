@@ -6,6 +6,11 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
+#include <signal.h>
+#include <errno.h>
+#include <sys/wait.h>
+
+
 #include "../server.h"
 #include "router.h"
 
@@ -52,8 +57,27 @@ int start_server(char *port) {
     return sockfd;
 }
 
+void sigchld_handler(int s)
+{
+    // waitpid() might overwrite errno, so we save and restore it:
+    int saved_errno = errno;
+
+    while(waitpid(-1, NULL, WNOHANG) > 0);
+
+    errno = saved_errno;
+}
+
 int run_server() {
     int sockfd = start_server("9115");
+
+    struct sigaction sa;
+    sa.sa_handler = sigchld_handler; // reap all dead processes
+    sigemptyset(&sa.sa_mask);
+    sa.sa_flags = SA_RESTART;
+    if (sigaction(SIGCHLD, &sa, NULL) == -1) {
+        perror("sigaction");
+        return 1;
+    }
 
     if (sockfd < 0) {
         return 1;
@@ -65,14 +89,17 @@ int run_server() {
             perror("accept");
             return 1;
         }
-
-        char buf[1024];
-        bzero(buf, 1024);
-        read(newsockfd, buf, 1024);
-        printf("%s\n", buf);
-        int ret = route_request(newsockfd, buf);
-        if (ret < 0) {
-            printf("route_request failed\n");
+        if (!fork()) {
+            char buf[1024];
+            bzero(buf, 1024);
+            read(newsockfd, buf, 1024);
+            printf("%s\n", buf);
+            int ret = route_request(newsockfd, buf);
+            if (ret < 0) {
+                printf("route_request failed\n");
+            }
+            close(newsockfd);
+            exit(0);
         }
         close(newsockfd);
     }
