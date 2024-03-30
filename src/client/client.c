@@ -81,7 +81,7 @@ int client(int argc, char *argv[]) {
         char **server_list = get_server_list();
         for (int i = 0; server_list[i] != NULL; i++) {
             printf("%s\n", server_list[i]);
-            if (get_chunk(server_list[i], server_list[i]) < 0) {
+            if (get_chunk(server_list[i], argv[2]) < 0) {
                 ret = -1;
                 break;
             }
