@@ -2,3 +2,4 @@ build/
 servers
 .cache/
 fsh.db
+init.sql

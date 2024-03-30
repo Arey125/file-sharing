@@ -5,8 +5,8 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
-#include "router.h"
 #include "db.h"
+#include "router.h"
 
 int write_response_with_len(int sockfd, char *response, int len) {
     char len_str[32];
@@ -30,15 +30,16 @@ int write_response_with_len(int sockfd, char *response, int len) {
     return write(sockfd, response, len);
 }
 
-
 int write_response(int sockfd, char *response) {
     int len = strlen(response);
     return write_response_with_len(sockfd, response, len);
 }
 
 int get_file_list_request(int sockfd) {
-    char response[] = "1.txt\n2.txt\n3.txt";
-    return write_response(sockfd, response);
+    char *response = get_file_list_from_db();
+    int rc = write_response(sockfd, response);
+    free(response);
+    return rc;
 }
 
 int get_chunk_request(int sockfd, char *chunk_name) {
