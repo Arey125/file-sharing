@@ -3,7 +3,7 @@
 #include <string.h>
 #include <sys/socket.h>
 #include <unistd.h>
-#include "../hash_sha256.h"
+#include "hash_sha256.h"
 
 int write_response(int sockfd, char *response) {
     int len = strlen(response);

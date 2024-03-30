@@ -11,7 +11,7 @@
 #include <sys/wait.h>
 
 
-#include "../server.h"
+#include "server.h"
 #include "router.h"
 
 int start_server(char *port) {

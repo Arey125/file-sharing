@@ -1,0 +1,30 @@
+[
+  {
+    "arguments": [
+      "/usr/bin/gcc",
+      "-Wall",
+      "-I./src",
+      "-c",
+      "-o",
+      "build/server/router.o",
+      "src/server/router.c"
+    ],
+    "directory": "/home/arey/dev/cpp/file-transfer/file-sharing",
+    "file": "/home/arey/dev/cpp/file-transfer/file-sharing/src/server/router.c",
+    "output": "/home/arey/dev/cpp/file-transfer/file-sharing/build/server/router.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/gcc",
+      "-Wall",
+      "-I./src",
+      "-c",
+      "-o",
+      "build/sha256/hash_sha256.o",
+      "src/sha256/hash_sha256.c"
+    ],
+    "directory": "/home/arey/dev/cpp/file-transfer/file-sharing",
+    "file": "/home/arey/dev/cpp/file-transfer/file-sharing/src/sha256/hash_sha256.c",
+    "output": "/home/arey/dev/cpp/file-transfer/file-sharing/build/sha256/hash_sha256.o"
+  }
+]

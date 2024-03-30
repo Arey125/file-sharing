@@ -1,6 +1,7 @@
 CODEDIRS=./src ./src/server ./src/client ./src/sha256
 BUILDDIR=./build
-CFLAGS=-Wall -MP -MD
+INCLUDES=-I./src
+CFLAGS=-Wall -MP -MD $(INCLUDES)
 CC=gcc
 DEBUG=0
 
