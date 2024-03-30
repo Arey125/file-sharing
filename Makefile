@@ -1,4 +1,4 @@
-CODEDIRS=./src ./src/server ./src/client ./src/sha256
+CODEDIRS=./src ./src/server ./src/client ./src/sha256 ./src/sqlite
 BUILDDIR=./build
 INCLUDES=-I./src
 CFLAGS=-Wall -MP -MD $(INCLUDES)
