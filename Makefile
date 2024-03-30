@@ -41,3 +41,5 @@ list: all
 chunk: all
 	@$(BINARY) chunk ba9ca616847e94c76eb0ccf3407d192e2fcc2be925ecdf662bd2706ba3efd26d
 
+wrongchunk: all
+	@$(BINARY) chunk fa9ca616847e94c76eb0ccf3407d192e2fcc2be925ecdf662bd2706ba3efd26d

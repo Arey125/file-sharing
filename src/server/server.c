@@ -10,11 +10,16 @@
 #include <errno.h>
 #include <sys/wait.h>
 
+#include <sqlite3.h>
+
 
 #include "server.h"
 #include "router.h"
+#include "db.h"
 
 int start_server(char *port) {
+    init_db();
+
     struct addrinfo hints;
     hints.ai_family = AF_INET;
     hints.ai_socktype = SOCK_STREAM;
