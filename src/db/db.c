@@ -11,7 +11,7 @@ int exec(char *sql) {
     char *err_msg = NULL;
     int rc = sqlite3_exec(db, sql, NULL, NULL, &err_msg);
     if (rc != SQLITE_OK) {
-        printf("SQL error: %s\n", err_msg);
+        printf("SQL error for \"%s\": %s\n", sql, err_msg);
         sqlite3_free(err_msg);
     }
     return rc;
@@ -29,7 +29,7 @@ int init_db() {
         "PRAGMA foreign_keys = ON",
         "CREATE TABLE IF NOT EXISTS files (id TEXT PRIMARY KEY, name TEXT)",
         "CREATE TABLE IF NOT EXISTS chunks (id TEXT PRIMARY KEY, content "
-        "BLOB, file_id TEXT, FOREIGN KEY(file_id) REFERENCES files(id))",
+        "BLOB, ind INTEGER, file_id TEXT, FOREIGN KEY(file_id) REFERENCES files(id))",
     };
 
     int commands_count = sizeof(commands) / sizeof(commands[0]);
@@ -88,4 +88,51 @@ char* get_file_list_from_db() {
     sqlite3_finalize(stmt);
 
     return result;
+}
+
+int start_adding_file_to_db(char* id, char* name) {
+    int rc = exec("BEGIN TRANSACTION");
+    if (rc != SQLITE_OK) {
+        return -1;
+    }
+    char sql[256];
+    sprintf(sql, "insert into files (id, name) values ('%s', '%s')", id, name);
+    rc = exec(sql);
+    if (rc != SQLITE_OK) {
+        exec("ROLLBACK");
+    }
+    return rc == SQLITE_OK ? 0 : -1;
+}
+
+
+int add_chunk_to_db(char* id, char* content, int content_len, int ind, char* file_id) {
+    char sql[256];
+    sprintf(sql, "insert into chunks (id, content, ind, file_id) values ('%s', ?, %d, '%s')", id, ind, file_id);
+    sqlite3_stmt *stmt;
+    sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
+
+    int rc = sqlite3_bind_blob(stmt, 1, content, content_len, SQLITE_STATIC);
+    if (rc != SQLITE_OK) {
+        printf("Could not bind blob: %s", sqlite3_errmsg(db));
+        return -1;
+    }
+
+    rc = sqlite3_step(stmt);
+    if (rc != SQLITE_DONE) {
+        printf("Could not add chunk: %s", sqlite3_errmsg(db));
+        exec("ROLLBACK");
+        return -1;
+    }
+
+    rc = sqlite3_finalize(stmt);
+
+    if (rc != SQLITE_OK) {
+        exec("ROLLBACK");
+        return -1;
+    }
+    return 0;
+}
+
+int commit_transaction() {
+    return exec("COMMIT") == SQLITE_OK ? 0 : -1;
 }

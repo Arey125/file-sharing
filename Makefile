@@ -1,4 +1,4 @@
-CODEDIRS=./src ./src/server ./src/client ./src/sha256 ./src/sqlite
+CODEDIRS=./src ./src/server ./src/client ./src/sha256 ./src/sqlite ./src/db
 BUILDDIR=./build
 INCLUDES=-I./src
 CFLAGS=-Wall -MP -MD $(INCLUDES)
@@ -33,7 +33,7 @@ clean:
 	rm $(BINARY) $(OBJECTS) $(DEPFILES)
 
 run: all
-	@$(BINARY)
+	@$(BINARY) server
 
 list: all
 	@$(BINARY) list
@@ -43,3 +43,6 @@ chunk: all
 
 wrongchunk: all
 	@$(BINARY) chunk fa9ca616847e94c76eb0ccf3407d192e2fcc2be925ecdf662bd2706ba3efd26d
+
+add: all
+	@$(BINARY) add ./init.sql
