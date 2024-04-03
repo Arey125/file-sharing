@@ -4,6 +4,7 @@
 #include <strings.h>
 
 #include "request.h"
+#include "add_file.h"
 
 char **get_server_list() {
     FILE *fp = fopen("./servers", "r");
@@ -59,6 +60,10 @@ int get_chunk(char *host, char *chunk_name) {
 
 int client(int argc, char *argv[]) {
     int ret = 0;
+    if (argc == 3 && strcmp("add", argv[1]) == 0) {
+        add_file(argv[2]);
+    }
+
     if (argc == 2 && strcmp("list", argv[1]) == 0) {
         char **server_list = get_server_list();
         for (int i = 0; server_list[i] != NULL; i++) {
@@ -81,7 +86,7 @@ int client(int argc, char *argv[]) {
         char **server_list = get_server_list();
         for (int i = 0; server_list[i] != NULL; i++) {
             printf("%s\n", server_list[i]);
-            if (get_chunk(server_list[i], server_list[i]) < 0) {
+            if (get_chunk(server_list[i], argv[2]) < 0) {
                 ret = -1;
                 break;
             }

@@ -1,14 +1,16 @@
 #include <netinet/in.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
 #include <unistd.h>
 
-int write_response(int sockfd, char *response) {
-    int len = strlen(response);
+#include "db.h"
+#include "router.h"
+
+int write_response_with_len(int sockfd, char *response, int len) {
     char len_str[32];
     sprintf(len_str, "%d\n", len);
-
     if (write(sockfd, len_str, strlen(len_str)) < 0) {
         perror("write error");
         return -1;
@@ -28,14 +30,25 @@ int write_response(int sockfd, char *response) {
     return write(sockfd, response, len);
 }
 
+int write_response(int sockfd, char *response) {
+    int len = strlen(response);
+    return write_response_with_len(sockfd, response, len);
+}
+
 int get_file_list_request(int sockfd) {
-    char response[] = "1.txt\n2.txt\n3.txt";
-    return write_response(sockfd, response);
+    char *response = get_file_list_from_db();
+    int rc = write_response(sockfd, response);
+    free(response);
+    return rc;
 }
 
 int get_chunk_request(int sockfd, char *chunk_name) {
-    char content[] = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.\nUt enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.";
-    return write_response(sockfd, content);
+    char *content;
+    int len = get_chunk_from_db(chunk_name, &content);
+
+    int rc = write_response_with_len(sockfd, content, len);
+    free(content);
+    return rc;
 }
 
 int route_request(int sockfd, char *request) {

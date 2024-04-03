@@ -1,6 +1,7 @@
-CODEDIRS=./src ./src/server ./src/client
+CODEDIRS=./src ./src/server ./src/client ./src/sha256 ./src/sqlite ./src/db
 BUILDDIR=./build
-CFLAGS=-Wall -MP -MD
+INCLUDES=-I./src
+CFLAGS=-Wall -MP -MD $(INCLUDES)
 CC=gcc
 DEBUG=0
 
@@ -32,10 +33,16 @@ clean:
 	rm $(BINARY) $(OBJECTS) $(DEPFILES)
 
 run: all
-	@$(BINARY)
+	@$(BINARY) server
 
 list: all
 	@$(BINARY) list
 
 chunk: all
-	@$(BINARY) chunk a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3
+	@$(BINARY) chunk ba9ca616847e94c76eb0ccf3407d192e2fcc2be925ecdf662bd2706ba3efd26d
+
+wrongchunk: all
+	@$(BINARY) chunk fa9ca616847e94c76eb0ccf3407d192e2fcc2be925ecdf662bd2706ba3efd26d
+
+add: all
+	@$(BINARY) add ./compile_commands.json

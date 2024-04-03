@@ -1,14 +1,11 @@
-#include "server.h"
+#include <string.h>
 #include "client.h"
+#include "server.h"
 
 int main(int argc, char *argv[]) {
-    if (argc == 1) {
+    if (argc == 2 && strcmp("server", argv[1]) == 0) {
         return run_server();
     }
 
-    if (argc > 1) {
-        return client(argc, argv);
-    }
-
-    return 0;
+    return client(argc, argv);
 }
