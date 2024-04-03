@@ -30,7 +30,7 @@ int add_file(char *file_path) {
     char chunk_buffer[MAX_CHUNK_SIZE];
     int ind = 0;
     while (!feof(file)) {
-        int count = fread(chunk_buffer, MAX_CHUNK_SIZE, 1, file);
+        int count = fread(chunk_buffer, 1, MAX_CHUNK_SIZE, file);
 
         char hash[SHA256_BLOCK_SIZE];
         char hash_str[SHA256_BLOCK_SIZE * 2 + 2];
@@ -49,6 +49,9 @@ int add_file(char *file_path) {
         }
         ind++;
     }
+
+    commit_transaction();
+    fclose(file);
 
     return 0;
 }

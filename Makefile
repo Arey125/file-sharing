@@ -46,3 +46,6 @@ wrongchunk: all
 
 add: all
 	@$(BINARY) add ./init.sql
+
+addbigfile: all
+	@$(BINARY) add ./Ant-Man.2015.2160p.4K.BluRay.x265.10bit.AAC5.1-[YTS.MX].mkv
