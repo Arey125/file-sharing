@@ -90,13 +90,13 @@ char* get_file_list_from_db() {
     return result;
 }
 
-int start_adding_file_to_db(char* id, char* name) {
+int start_adding_file_to_db(char* name) {
     int rc = exec("BEGIN TRANSACTION");
     if (rc != SQLITE_OK) {
         return -1;
     }
     char sql[256];
-    sprintf(sql, "insert into files (id, name) values ('%s', '%s')", id, name);
+    sprintf(sql, "insert into files (id, name) values ('new', '%s')", name);
     rc = exec(sql);
     if (rc != SQLITE_OK) {
         exec("ROLLBACK");
@@ -105,9 +105,9 @@ int start_adding_file_to_db(char* id, char* name) {
 }
 
 
-int add_chunk_to_db(char* id, char* content, int content_len, int ind, char* file_id) {
+int add_chunk_to_db(char* id, char* content, int content_len, int ind) {
     char sql[256];
-    sprintf(sql, "insert into chunks (id, content, ind, file_id) values ('%s', ?, %d, '%s')", id, ind, file_id);
+    sprintf(sql, "insert into chunks (id, content, ind, file_id) values ('%s', ?, %d, 'new')", id, ind);
     sqlite3_stmt *stmt;
     sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
 
@@ -131,6 +131,21 @@ int add_chunk_to_db(char* id, char* content, int content_len, int ind, char* fil
         return -1;
     }
     return 0;
+}
+
+int finish_adding_file_to_db(char* file_id) {
+    char commands[3][256];
+    sprintf(commands[0], "insert into files (id, name) values ('%s', (select name from files where id = 'new'))", file_id);
+    sprintf(commands[1], "UPDATE chunks SET file_id = '%s' WHERE file_id = 'new'", file_id);
+    sprintf(commands[2], "DELETE FROM files WHERE id = 'new'");
+
+    for (int i = 0; i < 3; i++) {
+        if (exec(commands[i]) != SQLITE_OK) {
+            return -1;
+        }
+    }
+
+    return commit_transaction();
 }
 
 int commit_transaction() {

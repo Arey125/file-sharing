@@ -23,34 +23,41 @@ int add_file(char *file_path) {
 
     init_db();
 
-    if (start_adding_file_to_db(file_name, file_name) < 0) {
+    if (start_adding_file_to_db(file_name) < 0) {
         return -1;
     }
 
+    SHA256_CTX file_ctx;
+    sha256_init(&file_ctx);
     char chunk_buffer[MAX_CHUNK_SIZE];
     int ind = 0;
     while (!feof(file)) {
         int count = fread(chunk_buffer, 1, MAX_CHUNK_SIZE, file);
 
-        char hash[SHA256_BLOCK_SIZE];
-        char hash_str[SHA256_BLOCK_SIZE * 2 + 2];
+        BYTE hash[SHA256_BLOCK_SIZE];
+        char hash_str[SHA256_BLOCK_SIZE * 2 + 1];
         SHA256_CTX ctx;
         sha256_init(&ctx);
         sha256_update(&ctx,(BYTE *)chunk_buffer, count);
-        sha256_final(&ctx, (BYTE *)hash);
+        sha256_update(&file_ctx,(BYTE *)chunk_buffer, count);
+        sha256_final(&ctx, hash);
 
-        for (int i = 0; i < SHA256_BLOCK_SIZE; i++) {
-            sprintf(hash_str + (i * 2), "%02x", (unsigned char)hash[i]);
-        }
-        hash_str[SHA256_BLOCK_SIZE * 2] = '\0';
+        convert_to_hex(hash, hash_str);
 
-        if (add_chunk_to_db(hash_str, chunk_buffer, count, ind, file_name) < 0) {
+        if (add_chunk_to_db(hash_str, chunk_buffer, count, ind) < 0) {
             return -1;
         }
         ind++;
     }
 
-    commit_transaction();
+    BYTE file_hash[SHA256_BLOCK_SIZE];
+    char file_hash_str[SHA256_BLOCK_SIZE * 2 + 1];
+    sha256_final(&file_ctx, file_hash);
+
+    convert_to_hex(file_hash, file_hash_str);
+
+
+    finish_adding_file_to_db(file_hash_str);
     fclose(file);
 
     return 0;

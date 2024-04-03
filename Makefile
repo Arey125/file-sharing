@@ -45,7 +45,4 @@ wrongchunk: all
 	@$(BINARY) chunk fa9ca616847e94c76eb0ccf3407d192e2fcc2be925ecdf662bd2706ba3efd26d
 
 add: all
-	@$(BINARY) add ./init.sql
-
-addbigfile: all
-	@$(BINARY) add ./Ant-Man.2015.2160p.4K.BluRay.x265.10bit.AAC5.1-[YTS.MX].mkv
+	@$(BINARY) add ./compile_commands.json

@@ -13,6 +13,7 @@
 *********************************************************************/
 
 /*************************** HEADER FILES ***************************/
+#include <stdio.h>
 #include <stdlib.h>
 #include <memory.h>
 #include "hash_sha256.h"
@@ -155,4 +156,11 @@ void sha256_final(SHA256_CTX *ctx, BYTE hash[])
 		hash[i + 24] = (ctx->state[6] >> (24 - i * 8)) & 0x000000ff;
 		hash[i + 28] = (ctx->state[7] >> (24 - i * 8)) & 0x000000ff;
 	}
+}
+
+void convert_to_hex(BYTE* input, char* output) {
+    for (int i = 0; i < SHA256_BLOCK_SIZE; i++) {
+        sprintf(output + (i * 2), "%02x", input[i]);
+    }
+    output[SHA256_BLOCK_SIZE * 2] = '\0';
 }
